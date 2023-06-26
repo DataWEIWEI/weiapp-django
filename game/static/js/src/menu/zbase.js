@@ -21,11 +21,4 @@ class AcGameMenu {
         this.$multi = this.$menu.find('c-game-menu-field-item-multi');
         this.$settings = this.$menu.find('c-game-menu-field-item-settings');
     }
-}class AcGame {
-    constructor(id) {
-        this.id = id;
-        this.$ac_game = $('#' + id);
-        this.menu = new AcGameMenu(this);
-    }
 }
-
