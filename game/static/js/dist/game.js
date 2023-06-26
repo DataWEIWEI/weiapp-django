@@ -187,8 +187,6 @@ requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
             this.vx = this.vy = 0;
         } else {
             let moved = Math.min(this.move_length, this.speed * this.timedelta / 1000);
-            console.log(this.x, this.y);
-            console.log(this.move_length);
             this.x += this.vx * moved;
             this.y += this.vy * moved;
             this.move_length -= moved;
@@ -212,7 +210,7 @@ requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
 
         this.game_map = new GameMap(this);
         this.players = [];
-        this.players.push(new Player(this, this.width / 2, this.height / 2, this.height * 0.05, 'white', this.height * 0.15, true))
+        this.players.push(new Player(this, this.width / 2, this.height / 2, this.height * 0.05, 'red', this.height * 0.95, true))
 
         this.start();
     }
