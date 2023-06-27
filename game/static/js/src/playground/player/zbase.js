@@ -66,7 +66,7 @@ class Player extends AcGameObject {
         let color = "orange";
         let speed = this.playground.height * 0.5;
         let move_length = this.playground.height * 1;
-
+        
         new FireBall(this.playground, this, x, y, radius, vx, vy, color, speed, move_length, this.playground.height * 0.01);
     }
 
@@ -92,6 +92,19 @@ class Player extends AcGameObject {
         this.damage_x = Math.cos(angle);
         this.damage_y = Math.sin(angle);
         this.damage_speed = damage * 100;
+        this.speed *= 1.3;
+
+        for (let i = 0; i < 20 + Math.random() * 10; i++) {
+            let x = this.x, y = this.y;
+            let radius = this.radius * Math.random() * 0.1;
+            let angle = Math.PI * 2 * Math.random();
+            let vx = Math.cos(angle), vy = Math.sin(angle);
+            let color = this.color;
+            let speed = this.speed * 5;
+            let move_length = this.radius * Math.random() * 5;
+
+            new Particle(this.playground, x, y, radius, vx, vy, color, speed, move_length);
+        }
     }
 
     update() {

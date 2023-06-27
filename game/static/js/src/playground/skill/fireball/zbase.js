@@ -21,27 +21,6 @@ class FireBall extends AcGameObject {
 
     }
 
-    // add_listening_events() {
-    //     let outer = this;
-
-    //     this.playerground.game_map.$canvas.on('contextmenu', function () {
-    //         return false;
-    //     });
-
-    //     this.playerground.game_map.$canvas.mousedown(function (e) {
-    //         if (e.which === 3) {
-    //             outer.move_to(e.clientX, e.clientY);
-    //         }
-    //     });
-    // }
-
-    // move_to(tx, ty) {
-    //     this.move_length = this.get_dist(this.x, this.y, tx, ty);
-    //     let angle = Math.atan2(ty - this.y, tx - this.x);
-    //     this.vx = Math.cos(angle);
-    //     this.vy = Math.sin(angle);
-    // }
-
     update() {
         if (this.move_length < this.eps) {
             this.destory();

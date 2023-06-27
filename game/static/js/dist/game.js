@@ -130,7 +130,53 @@ requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
         this.ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
         this.ctx.fillRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
     }
-}class Player extends AcGameObject {
+}class Particle extends AcGameObject {
+    constructor(playground, x, y, radius, vx, vy, color, speed, move_length) {
+        super();
+
+        this.playground = playground;
+        this.ctx = this.playground.game_map.ctx;
+        this.x = x;
+        this.y = y;
+        this.radius = radius;
+        this.vx = vx;
+        this.vy = vy;
+        this.color = color;
+        this.speed = speed;
+        this.friction = 0.9;
+        this.move_length = move_length;
+        this.eps = 1;
+    }
+
+    start() {
+        
+    };
+
+    update() {
+        if (this.move_length < this.eps || this.speed < this.eps) {
+            this.destory();
+            return false;
+        }
+
+        let moved = Math.min(this.move_length, this.speed * this.timedelta / 1000);
+        // console.log(this.move_length);
+        this.x += this.vx * moved;
+        this.y += this.vy * moved;
+        this.speed *= this.friction;
+        this.move_length -= moved;
+
+        this.render();
+    };
+
+    render() {
+        this.ctx.beginPath();
+        this.ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+        this.ctx.fillStyle = this.color;
+        this.ctx.fill();
+    }
+};
+
+class Player extends AcGameObject {
     constructor(playground, x, y, radius, color, speed, is_me) {
         super();
 
@@ -198,7 +244,7 @@ requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
         let color = "orange";
         let speed = this.playground.height * 0.5;
         let move_length = this.playground.height * 1;
-
+        
         new FireBall(this.playground, this, x, y, radius, vx, vy, color, speed, move_length, this.playground.height * 0.01);
     }
 
@@ -224,6 +270,19 @@ requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
         this.damage_x = Math.cos(angle);
         this.damage_y = Math.sin(angle);
         this.damage_speed = damage * 100;
+        this.speed *= 1.3;
+
+        for (let i = 0; i < 20 + Math.random() * 10; i++) {
+            let x = this.x, y = this.y;
+            let radius = this.radius * Math.random() * 0.1;
+            let angle = Math.PI * 2 * Math.random();
+            let vx = Math.cos(angle), vy = Math.sin(angle);
+            let color = this.color;
+            let speed = this.speed * 5;
+            let move_length = this.radius * Math.random() * 5;
+
+            new Particle(this.playground, x, y, radius, vx, vy, color, speed, move_length);
+        }
     }
 
     update() {
@@ -281,27 +340,6 @@ requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
     start() {
 
     }
-
-    // add_listening_events() {
-    //     let outer = this;
-
-    //     this.playerground.game_map.$canvas.on('contextmenu', function () {
-    //         return false;
-    //     });
-
-    //     this.playerground.game_map.$canvas.mousedown(function (e) {
-    //         if (e.which === 3) {
-    //             outer.move_to(e.clientX, e.clientY);
-    //         }
-    //     });
-    // }
-
-    // move_to(tx, ty) {
-    //     this.move_length = this.get_dist(this.x, this.y, tx, ty);
-    //     let angle = Math.atan2(ty - this.y, tx - this.x);
-    //     this.vx = Math.cos(angle);
-    //     this.vy = Math.sin(angle);
-    // }
 
     update() {
         if (this.move_length < this.eps) {
@@ -361,10 +399,10 @@ requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
 
         this.game_map = new GameMap(this);
         this.players = [];
-        this.players.push(new Player(this, this.width / 2, this.height / 2, this.height * 0.05, 'red', this.height * 0.15, true))
+        this.players.push(new Player(this, this.width * Math.random(), this.height * Math.random(), this.height * 0.05, 'red', this.height * 0.15, true))
 
         for (let i = 0; i < 5; i++) {
-            this.players.push(new Player(this, this.width / 2, this.height / 2, this.height * 0.05, 'white', this.height * 0.15, false))
+            this.players.push(new Player(this, this.width * Math.random(), this.height * Math.random(), this.height * 0.05, this.get_random_color(), this.height * 0.15, false))
         }
 
         this.start();
@@ -372,6 +410,11 @@ requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
 
     start() {
 
+    }
+
+    get_random_color() {
+        let colors = ['blue', 'pink', 'yellow', 'green', 'grey', 'white']
+        return colors[Math.floor(Math.random() * 5)];
     }
 
     show() {
