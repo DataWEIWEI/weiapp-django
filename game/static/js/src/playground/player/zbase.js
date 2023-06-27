@@ -18,6 +18,7 @@ class Player extends AcGameObject {
         this.is_me = is_me;
         this.eps = 0.1;
         this.friction = 0.9;
+        // this.spent_time = 0;     // invincible time
 
         this.cur_skill = null;
     }
@@ -84,16 +85,6 @@ class Player extends AcGameObject {
     }
 
     is_attack(angle, damage) {
-        this.radius -= damage;
-        if (this.radius < 10) {
-            this.destory();
-            return false;
-        }
-        this.damage_x = Math.cos(angle);
-        this.damage_y = Math.sin(angle);
-        this.damage_speed = damage * 100;
-        this.speed *= 1.3;
-
         for (let i = 0; i < 20 + Math.random() * 10; i++) {
             let x = this.x, y = this.y;
             let radius = this.radius * Math.random() * 0.1;
@@ -105,9 +96,28 @@ class Player extends AcGameObject {
 
             new Particle(this.playground, x, y, radius, vx, vy, color, speed, move_length);
         }
+
+        this.radius -= damage;
+        if (this.radius < 10) {
+            this.destory();
+            return false;
+        }
+        this.damage_x = Math.cos(angle);
+        this.damage_y = Math.sin(angle);
+        this.damage_speed = damage * 100;
+        this.speed *= 1.3;
+
     }
 
     update() {
+        // this.spent_time += this.timedelta / 1000;
+        // if (this.spent_time < 5) {}
+
+        if (Math.random() < 1 / 180.0) {
+            let player = this.playground.players[Math.floor(Math.random() * (this.playground.players.length) - 1) + 1];
+            this.shoot_fireball(player.x, player.y);
+        }
+
         if (this.damage_speed > 10) {
             this.vx = this.vy = 0;
             this.move_length = 0;
