@@ -140,12 +140,16 @@ requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
         this.y = y;
         this.vx = 0;
         this.vy = 0;
+        this.damage_x = 0;
+        this.damage_y = 0;
+        this.damage_speed = 0;
         this.move_length = 0;
         this.radius = radius;
         this.color = color;
         this.speed = speed;
         this.is_me = is_me;
         this.eps = 0.1;
+        this.friction = 0.9;
 
         this.cur_skill = null;
     }
@@ -153,6 +157,10 @@ requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
     start() {
         if (this.is_me) {
             this.add_listening_events();
+        } else {
+            let tx = Math.random() * this.playground.width;
+            let ty = Math.random() * this.playground.height;
+            this.move_to(tx, ty);
         }
     }
 
@@ -169,7 +177,7 @@ requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
             } else if (e.which === 1) {
                 if (outer.cur_skill === "fireball")
                     outer.shoot_fireball(e.clientX, e.clientY);
-                
+
                 outer.cur_skill = null;
             }
         });
@@ -189,9 +197,9 @@ requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
         let vx = Math.cos(angle), vy = Math.sin(angle);
         let color = "orange";
         let speed = this.playground.height * 0.5;
-        let move_length = this.playground.height * 1.5;
+        let move_length = this.playground.height * 1;
 
-        new FireBall(this.playground, this, x, y, radius, vx, vy, color, speed, move_length);
+        new FireBall(this.playground, this, x, y, radius, vx, vy, color, speed, move_length, this.playground.height * 0.01);
     }
 
     get_dist(x1, y1, x2, y2) {
@@ -207,10 +215,32 @@ requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
         this.vy = Math.sin(angle);
     }
 
+    is_attack(angle, damage) {
+        this.radius -= damage;
+        if (this.radius < 10) {
+            this.destory();
+            return false;
+        }
+        this.damage_x = Math.cos(angle);
+        this.damage_y = Math.sin(angle);
+        this.damage_speed = damage * 100;
+    }
+
     update() {
-        if (this.move_length < this.eps) {
+        if (this.damage_speed > 10) {
+            this.vx = this.vy = 0;
+            this.move_length = 0;
+            this.x += this.damage_x * this.damage_speed * this.timedelta / 1000;
+            this.y += this.damage_y * this.damage_speed * this.timedelta / 1000;
+            this.damage_speed *= this.friction;
+        } else if (this.move_length < this.eps) {
             this.move_length = 0;
             this.vx = this.vy = 0;
+            if (!this.is_me) {
+                let tx = Math.random() * this.playground.width;
+                let ty = Math.random() * this.playground.height;
+                this.move_to(tx, ty);
+            }
         } else {
             let moved = Math.min(this.move_length, this.speed * this.timedelta / 1000);
             // console.log(this.vx, this.vy);
@@ -218,8 +248,10 @@ requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
             this.y += this.vy * moved;
             this.move_length -= moved;
         }
+
         this.render();
     }
+
 
     render() {
         this.ctx.beginPath();
@@ -228,12 +260,12 @@ requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
         this.ctx.fill();
     }
 }class FireBall extends AcGameObject {
-    constructor(playerground, player, x, y, radius, vx, vy, color, speed, move_length) {
+    constructor(playground, player, x, y, radius, vx, vy, color, speed, move_length, damage) {
         super();
 
-        this.playerground = playerground;
+        this.playground = playground;
         this.player = player;
-        this.ctx = this.playerground.game_map.ctx;
+        this.ctx = this.playground.game_map.ctx;
         this.x = x;
         this.y = y;
         this.vx = vx;
@@ -242,6 +274,7 @@ requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
         this.color = color;
         this.speed = speed;
         this.move_length = move_length;
+        this.damage = damage;
         this.eps = 0.1;
     }
 
@@ -263,12 +296,6 @@ requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
     //     });
     // }
 
-    // get_dist(x1, y1, x2, y2) {
-    //     let dx = x1 - x2;
-    //     let dy = y1 - y2;
-    //     return Math.sqrt(dx * dx + dy * dy);
-    // }
-
     // move_to(tx, ty) {
     //     this.move_length = this.get_dist(this.x, this.y, tx, ty);
     //     let angle = Math.atan2(ty - this.y, tx - this.x);
@@ -287,7 +314,35 @@ requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
         this.y += this.vy * moved;
         this.move_length -= moved;
 
+        for (let i = 0; i < this.playground.players.length; i++) {
+            let player = this.playground.players[i];
+            if (this.player !== player && this.is_collision(player)) {
+                this.attack(player);
+            }
+        }
+
         this.render();
+    }
+
+    get_dist(x1, y1, x2, y2) {
+        let dx = x1 - x2;
+        let dy = y1 - y2;
+        return Math.sqrt(dx * dx + dy * dy);
+    }
+
+    is_collision(player) {
+        let distance = this.get_dist(this.x, this.y, player.x, player.y);
+        if (distance < this.radius + player.radius) {
+            return true;
+        }
+
+        return false;
+    }
+
+    attack(player) {
+        let angle = Math.atan2(player.y - this.y, player.x - this.x);
+        player.is_attack(angle, this.damage);
+        this.destory();
     }
 
     render() {
@@ -307,6 +362,10 @@ requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
         this.game_map = new GameMap(this);
         this.players = [];
         this.players.push(new Player(this, this.width / 2, this.height / 2, this.height * 0.05, 'red', this.height * 0.15, true))
+
+        for (let i = 0; i < 5; i++) {
+            this.players.push(new Player(this, this.width / 2, this.height / 2, this.height * 0.05, 'white', this.height * 0.15, false))
+        }
 
         this.start();
     }
