@@ -245,7 +245,7 @@ class Player extends AcGameObject {
         let color = "orange";
         let speed = this.playground.height * 0.5;
         let move_length = this.playground.height * 1;
-        
+
         new FireBall(this.playground, this, x, y, radius, vx, vy, color, speed, move_length, this.playground.height * 0.01);
     }
 
@@ -291,9 +291,11 @@ class Player extends AcGameObject {
         // this.spent_time += this.timedelta / 1000;
         // if (this.spent_time < 5) {}
 
-        if (Math.random() < 1 / 180.0) {
+        if (!this.is_me && Math.random() < 1 / 180.0) {
             let player = this.playground.players[Math.floor(Math.random() * this.playground.players.length)];
-            this.shoot_fireball(player.x, player.y);
+            let tx = player.x + player.speed * this.vx * this.timedelta / 1000 * 1;
+            let ty = player.y + player.speed * this.vy * this.timedelta / 1000 * 1;
+            this.shoot_fireball(tx, ty);
         }
 
         if (this.damage_speed > 10) {
