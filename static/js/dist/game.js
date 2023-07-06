@@ -16,7 +16,7 @@ class AcGameMenu {
             </div>
         </div>`);
 
-        // this.root.$ac_game.append(this.$menu);
+        this.root.$ac_game.append(this.$menu);
         this.$single_mode = this.$menu.find('.ac-game-menu-field-item-single-mode');
         this.$multi_mode = this.$menu.find('.ac-game-menu-field-item-multi-mode');
         this.$settings = this.$menu.find('.ac-game-menu-field-item-settings');
@@ -219,11 +219,12 @@ class Player extends AcGameObject {
         });
 
         this.playground.game_map.$canvas.mousedown(function (e) {
+            const rect = outer.ctx.canvas.getBoundingClientRect();
             if (e.which === 3) {
-                outer.move_to(e.clientX, e.clientY);
+                outer.move_to(e.clientX - rect.left, e.clientY - rect.top);
             } else if (e.which === 1) {
                 if (outer.cur_skill === "fireball")
-                    outer.shoot_fireball(e.clientX, e.clientY);
+                    outer.shoot_fireball(e.clientX - rect.left, e.clientY - rect.top);
 
                 outer.cur_skill = null;
             }
@@ -405,17 +406,8 @@ class Player extends AcGameObject {
     constructor(root) {
         this.root = root;
         this.$playground = $(`<div class="ac-game-playground"></div>`);
-        this.root.$ac_game.append(this.$playground);
-        this.width = this.$playground.width();
-        this.height = this.$playground.height();
 
-        this.game_map = new GameMap(this);
-        this.players = [];
-        this.players.push(new Player(this, this.width * Math.random(), this.height * Math.random(), this.height * 0.05, 'red', this.height * 0.15, true))
-
-        for (let i = 0; i < 5; i++) {
-            this.players.push(new Player(this, this.width * Math.random(), this.height * Math.random(), this.height * 0.05, this.get_random_color(), this.height * 0.15, false))
-        }
+        this.hide();
 
         this.start();
     }
@@ -431,6 +423,17 @@ class Player extends AcGameObject {
 
     show() {
         this.$playground.show();
+        this.root.$ac_game.append(this.$playground);
+        this.width = this.$playground.width();
+        this.height = this.$playground.height();
+
+        this.game_map = new GameMap(this);
+        this.players = [];
+        this.players.push(new Player(this, this.width * Math.random(), this.height * Math.random(), this.height * 0.05, 'red', this.height * 0.15, true))
+
+        for (let i = 0; i < 5; i++) {
+            this.players.push(new Player(this, this.width * Math.random(), this.height * Math.random(), this.height * 0.05, this.get_random_color(), this.height * 0.15, false))
+        }
     }
 
     hide() {
