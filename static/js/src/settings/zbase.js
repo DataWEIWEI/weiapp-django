@@ -7,6 +7,45 @@ class Settings {
 
         this.username = '';
         this.photo = '';
+
+        this.$settings = $(`
+        <div class="ac-game-settings">
+            <div class="ac-game-settings-login">
+                <div class="ac-game-settings-title">
+                LOG IN
+                </div>
+                <div class="ac-game-settings-username">
+                    <div class="ac-game-settings-item">
+                        <input type="text" placeholer="username">
+                    </div>
+                </div>
+                <div class="ac-game-settings-password">
+                    <div class="ac-game-settings-item">
+                        <input type="password" placeholer="password">
+                    </div>
+                </div>
+                <div class="ac-game-settings-submit">
+                    <div class="ac-game-settings-item">
+                        <button>登陆</button>
+                    </div>
+                </div>
+                <div class="ac-game-settings-error-messages">
+                password error
+                </div>
+                <div class="ac-game-settings-option">
+                REGISTER
+                </div>
+            </div>
+            <div class="ac-game-settings-register">
+            </div>
+        </div>
+        `)
+        this.$login = this.$settings.find(".ac-game-settings-login");
+        this.$login.hide();
+        this.$register = this.$settings.find(".ac-game-settings-register");
+        this.$register.hide();
+        this.root.$ac_game.append(this.$settings);
+
         this.start();
     }
 
@@ -15,11 +54,13 @@ class Settings {
     }
 
     login() {   // open log-in-interface
-
+        this.$register.hide();
+        this.$login.show();
     }
 
     register() {
-        
+        this.$login.hide();
+        this.$register.show();
     }
 
     getinfo() {
@@ -47,10 +88,10 @@ class Settings {
     }
 
     hide() {
-        
+        this.$settings.hide();
     }
 
     show() {
-        
+        this.$settings.show();
     }
 }
