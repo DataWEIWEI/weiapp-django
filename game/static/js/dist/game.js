@@ -493,6 +493,12 @@ class Player extends AcGameObject {
                 <div class="ac-game-settings-option">
                 REGISTER
                 </div>
+                <br>
+                <div class="ac-game-settings-acwing">
+                    <img width="30" src="https://app5593.acapp.acwing.com.cn/static/image/settings/acwing_logo.png">
+                    <br>
+                    <div>One-click login</div>
+                </div>
             </div>
             <div class="ac-game-settings-register">
             </div>
