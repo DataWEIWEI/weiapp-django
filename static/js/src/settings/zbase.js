@@ -30,7 +30,6 @@ class Settings {
                     </div>
                 </div>
                 <div class="ac-game-settings-error-messages">
-                password error
                 </div>
                 <div class="ac-game-settings-option">
                 REGISTER
@@ -116,8 +115,12 @@ class Settings {
 
     add_listening_events_login() {
         let outer = this;
-        this.$login_register.click(function () { 
+        this.$login_register.click(function () {
             outer.register();
+        });
+
+        this.$login_submit.click(function () {
+            outer.login_on_remote();
         })
     }
 
@@ -125,6 +128,80 @@ class Settings {
         let outer = this;
         this.$register_login.click(function () {
             outer.login();
+        })
+
+        this.$register_submit.click(function () {
+            outer.register_on_remote();
+        })
+    }
+
+    login_on_remote() {     // log on remote server
+        let outer = this;
+
+        let username = this.$login_username.val();
+        let password = this.$login_password.val();
+        this.$login_error_messages.empty();
+
+        $.ajax({
+            url: 'https://app5593.acapp.acwing.com.cn/settings/login/',
+            type: 'GET',
+            data: {
+                username: username,
+                password: password,
+            },
+            success: function (resp) {
+                console.log(resp);
+
+                if (resp.result === 'success') {
+                    location.reload();
+                } else {
+                    outer.$login_error_messages.html(resp.result);
+                }
+            }
+        })
+    }
+
+    register_on_remote() {     // register on remote server
+        let outer = this;
+
+        let username = this.$register_username.val();
+        let password = this.$register_password.val();
+        let password_confirm = this.$register_password_confirm.val();
+        console.log(password, password_confirm);
+        this.$register_error_messages.empty();
+
+        $.ajax({
+            url: 'https://app5593.acapp.acwing.com.cn/settings/register/',
+            type: 'GET',
+            data: {
+                username: username,
+                password: password,
+                password_confirm: password_confirm
+            },
+            success: function (resp) {
+                console.log(resp);
+
+                if (resp.result === 'success') {
+                    location.reload();
+                } else {
+                    outer.$register_error_messages.html(resp.result);
+                }
+            }
+        })
+    }
+
+    logout_on_remote() {     // log out remote server
+        if (this.platform === 'ACAPP') return false;
+
+        $.ajax({
+            url: 'https://app5593.acapp.acwing.com.cn/settings/logout/',
+            type: 'GET',
+            success: function (resp) {
+                console.log(resp);
+                if (resp.result === 'success') {
+                    location.reload();
+                }
+            }
         })
     }
 

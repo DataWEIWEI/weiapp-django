@@ -14,7 +14,7 @@ def getinfo_web(request):
     user = request.user
     if not user.is_authenticated:
         return JsonResponse({
-            'result': 'not log in'
+            'result': 'not login'
         })
     else:
         player = Player.objects.all()[0]

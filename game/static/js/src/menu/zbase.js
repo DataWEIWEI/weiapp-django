@@ -11,7 +11,7 @@ class AcGameMenu {
                     多人模式
                 </div>
                 <div class="ac-game-menu-field-item ac-game-menu-field-item-settings">
-                    设置
+                    退出
                 </div>
             </div>
         </div>`);
@@ -43,6 +43,7 @@ class AcGameMenu {
 
         this.$settings.click(function () {
             console.log(3);
+            outer.root.settings.logout_on_remote();
         });
     }
 
