@@ -206,6 +206,13 @@ class Player extends AcGameObject {
             this.img = new Image();
             this.img.src = this.playground.root.settings.photo;
         }
+
+        // default image
+        this.default_img = new Image();
+        this.default_img.src = 'https://app5593.acapp.acwing.com.cn/static/image/player/%E6%98%9F%E9%87%8E%E9%9C%B2%E6%AF%94.jpg'
+        // 黑川赤音：https://app5593.acapp.acwing.com.cn/static/image/player/%E9%BB%91%E5%B7%9D%E8%B5%A4%E9%9F%B3.jpg
+        // 星野露比：https://app5593.acapp.acwing.com.cn/static/image/player/%E6%98%9F%E9%87%8E%E9%9C%B2%E6%AF%94.jpg
+        // 有马加奈: https://app5593.acapp.acwing.com.cn/static/image/player/%E6%9C%89%E9%A9%AC%E5%8A%A0%E5%A5%88.jpg
     }
 
     start() {
@@ -299,7 +306,7 @@ class Player extends AcGameObject {
         // this.spent_time += this.timedelta / 1000;
         // if (this.spent_time < 5) {}
 
-        if (!this.is_me && Math.random() < 1 / 180.0) {
+        if (!this.is_me && Math.random() < 4 / 180.0) {
             let player = this.playground.players[Math.floor(Math.random() * this.playground.players.length)];
             let tx = player.x + player.speed * this.vx * this.timedelta / 1000 * 1;
             let ty = player.y + player.speed * this.vy * this.timedelta / 1000 * 1;
@@ -342,10 +349,18 @@ class Player extends AcGameObject {
             this.ctx.drawImage(this.img, this.x - this.radius, this.y - this.radius, this.radius * 2, this.radius * 2);
             this.ctx.restore();
         } else {
+            // this.ctx.beginPath();
+            // this.ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+            // this.ctx.fillStyle = this.color;
+            // this.ctx.fill();
+
+            this.ctx.save();
             this.ctx.beginPath();
             this.ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
-            this.ctx.fillStyle = this.color;
-            this.ctx.fill();
+            this.ctx.stroke();
+            this.ctx.clip();
+            this.ctx.drawImage(this.default_img, this.x - this.radius, this.y - this.radius, this.radius * 2, this.radius * 2);
+            this.ctx.restore();
         }
 
     }
@@ -449,7 +464,7 @@ class Player extends AcGameObject {
         this.players = [];
         this.players.push(new Player(this, this.width * Math.random(), this.height * Math.random(), this.height * 0.05, 'red', this.height * 0.15, true))
 
-        for (let i = 0; i < 5; i++) {
+        for (let i = 0; i < 12; i++) {
             this.players.push(new Player(this, this.width * Math.random(), this.height * Math.random(), this.height * 0.05, this.get_random_color(), this.height * 0.15, false))
         }
     }
@@ -557,6 +572,9 @@ class Player extends AcGameObject {
         
 
         this.$register.hide();
+
+        this.$acwing_login = this.$settings.find(".ac-game-settings-acwing img");
+
         this.root.$ac_game.append(this.$settings);
 
         this.start();
@@ -568,8 +586,14 @@ class Player extends AcGameObject {
     }
 
     add_listening_events() {
+        let outer = this;
+
         this.add_listening_events_login();
         this.add_listening_events_register();
+
+        this.$acwing_login.click(function () {
+            outer.acwing_login();
+        })
     }
 
     add_listening_events_login() {
@@ -591,6 +615,20 @@ class Player extends AcGameObject {
 
         this.$register_submit.click(function () {
             outer.register_on_remote();
+        })
+    }
+
+    acwing_login() {
+        $.ajax({
+            url: 'https://app5593.acapp.acwing.com.cn/settings/acwing/web/apply_code/',
+            type: 'GET',
+            success: function (resp) {
+                console.log(resp);
+
+                if (resp.result === 'success') {
+                    window.location.replace(resp.apply_code_url);
+                }
+            }
         })
     }
 
