@@ -27,7 +27,7 @@ class AcGamePlayground {
         this.players = [];
         this.players.push(new Player(this, this.width * Math.random(), this.height * Math.random(), this.height * 0.05, 'red', this.height * 0.15, true))
 
-        for (let i = 0; i < 12; i++) {
+        for (let i = 0; i < 5; i++) {
             this.players.push(new Player(this, this.width * Math.random(), this.height * Math.random(), this.height * 0.05, this.get_random_color(), this.height * 0.15, false))
         }
     }
