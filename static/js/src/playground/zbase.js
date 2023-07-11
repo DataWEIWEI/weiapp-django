@@ -32,7 +32,7 @@ class AcGamePlayground {
         return colors[Math.floor(Math.random() * 5)];
     }
 
-    show() {
+    show(mode) {
         this.$playground.show();
 
         this.resize();
@@ -42,10 +42,14 @@ class AcGamePlayground {
 
         this.game_map = new GameMap(this);
         this.players = [];
-        this.players.push(new Player(this, this.width * Math.random() / this.scale, Math.random(), 0.05, 'red', 0.15, true))
+        this.players.push(new Player(this, this.width * Math.random() / this.scale, Math.random(), 0.05, 'red', 0.15, 'me', this.root.settings.username, this.root.settings.photo))
 
-        for (let i = 0; i < 5; i++) {
-            this.players.push(new Player(this, this.width * Math.random() / this.scale, Math.random(), 0.05, this.get_random_color(), 0.15, false))
+        if (mode === 'single mode') {
+            for (let i = 0; i < 5; i++) {
+                this.players.push(new Player(this, this.width * Math.random() / this.scale, Math.random(), 0.05, this.get_random_color(), 0.15, 'robot'))
+            }
+        } else if(mode === 'multi mode') {
+
         }
     }
 

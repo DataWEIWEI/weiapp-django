@@ -34,11 +34,12 @@ class AcGameMenu {
 
         this.$single_mode.click(function () {
             outer.hide();
-            outer.root.playground.show();
+            outer.root.playground.show("single mode");
         });
 
         this.$multi_mode.click(function () {
-            console.log(2);
+            outer.hide();
+            outer.root.playground.show('multi mode')
         });
 
         this.$settings.click(function () {
@@ -187,7 +188,7 @@ requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
 };
 
 class Player extends AcGameObject {
-    constructor(playground, x, y, radius, color, speed, is_me) {
+    constructor(playground, x, y, radius, color, speed, character, username, photo) {
         super();
 
         this.playground = playground;
@@ -203,16 +204,18 @@ class Player extends AcGameObject {
         this.radius = radius;
         this.color = color;
         this.speed = speed;
-        this.is_me = is_me;
+        this.character = character;
+        this.username = username;
+        this.photo = photo;
         this.eps = 0.01;
         this.friction = 0.9;
         // this.spent_time = 0;     // invincible time
 
         this.cur_skill = null;
 
-        if (this.is_me) {
+        if (this.character !== 'robot') {
             this.img = new Image();
-            this.img.src = this.playground.root.settings.photo;
+            this.img.src = this.photo;
         }
 
         // default image
@@ -224,7 +227,7 @@ class Player extends AcGameObject {
     }
 
     start() {
-        if (this.is_me) {
+        if (this.character === 'me') {
             this.add_listening_events();
         } else {
             let tx = Math.random() * this.playground.width / this.playground.scale;
@@ -320,14 +323,14 @@ class Player extends AcGameObject {
         // this.spent_time += this.timedelta / 1000;
         // if (this.spent_time < 5) {}
 
-        if (!this.is_me && Math.random() < 4 / 180.0) {
+        if (!this.character === 'robot' && Math.random() < 4 / 180.0) {
             let player = this.playground.players[Math.floor(Math.random() * this.playground.players.length)];
             let tx = player.x + player.speed * this.vx * this.timedelta / 1000 * 1;
             let ty = player.y + player.speed * this.vy * this.timedelta / 1000 * 1;
             this.shoot_fireball(tx, ty);
         }
 
-        if (this.damage_speed > 10) {
+        if (this.damage_speed > this.eps) {
             this.vx = this.vy = 0;
             this.move_length = 0;
             this.x += this.damage_x * this.damage_speed * this.timedelta / 1000;
@@ -336,7 +339,7 @@ class Player extends AcGameObject {
         } else if (this.move_length < this.eps) {
             this.move_length = 0;
             this.vx = this.vy = 0;
-            if (!this.is_me) {
+            if (this.character === 'robot') {
                 let tx = Math.random() * this.playground.width / this.playground.scale;
                 let ty = Math.random() * this.playground.height / this.playground.scale;
                 this.move_to(tx, ty);
@@ -355,7 +358,7 @@ class Player extends AcGameObject {
         let scale = this.playground.scale;
 
 
-        if (this.is_me) {
+        if (this.character !== 'robot') {
             this.ctx.save();
             this.ctx.beginPath();
             this.ctx.arc(this.x * scale, this.y * scale, this.radius * scale, 0, Math.PI * 2, false);
@@ -485,7 +488,7 @@ class Player extends AcGameObject {
         return colors[Math.floor(Math.random() * 5)];
     }
 
-    show() {
+    show(mode) {
         this.$playground.show();
 
         this.resize();
@@ -495,10 +498,14 @@ class Player extends AcGameObject {
 
         this.game_map = new GameMap(this);
         this.players = [];
-        this.players.push(new Player(this, this.width * Math.random() / this.scale, Math.random(), 0.05, 'red', 0.15, true))
+        this.players.push(new Player(this, this.width * Math.random() / this.scale, Math.random(), 0.05, 'red', 0.15, 'me', this.root.settings.username, this.root.settings.photo))
 
-        for (let i = 0; i < 5; i++) {
-            this.players.push(new Player(this, this.width * Math.random() / this.scale, Math.random(), 0.05, this.get_random_color(), 0.15, false))
+        if (mode === 'single mode') {
+            for (let i = 0; i < 5; i++) {
+                this.players.push(new Player(this, this.width * Math.random() / this.scale, Math.random(), 0.05, this.get_random_color(), 0.15, 'robot'))
+            }
+        } else if(mode === 'multi mode') {
+
         }
     }
 
