@@ -33,14 +33,15 @@ class AcGamePlayground {
     }
 
     show(mode) {
-        this.$playground.show();
+        let outer = this;
 
-        this.resize();
+        this.$playground.show();
 
         this.width = this.$playground.width();
         this.height = this.$playground.height();
 
         this.game_map = new GameMap(this);
+        this.resize();
         this.players = [];
         this.players.push(new Player(this, this.width * Math.random() / this.scale, Math.random(), 0.05, 'red', 0.15, 'me', this.root.settings.username, this.root.settings.photo))
 
@@ -49,7 +50,12 @@ class AcGamePlayground {
                 this.players.push(new Player(this, this.width * Math.random() / this.scale, Math.random(), 0.05, this.get_random_color(), 0.15, 'robot'))
             }
         } else if(mode === 'multi mode') {
-
+            this.mps = new MultiPlayerSocket(this);
+            this.mps.uuid = this.players[0].uuid;
+            
+            this.mps.ws.onopen = function () {
+                outer.mps.send_create_player(outer.root.settings.username, outer.root.settings.photo);
+            }
         }
     }
 

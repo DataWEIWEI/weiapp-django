@@ -6,6 +6,19 @@ class AcGameObject {
 
         this.has_called_start = false;  // whether the object has been started
         this.timedelta = 0;    // the elapsed time of a frame
+
+        this.uuid = this.create_uuid();
+
+    }
+
+    create_uuid() {
+        let res = '';
+        for (let i = 0; i < 8; i++){
+            let x = parseInt(Math.floor(Math.random() * 10));
+            res += x;
+        }
+
+        return res;
     }
 
     start() {

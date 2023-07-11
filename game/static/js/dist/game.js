@@ -65,6 +65,19 @@ class AcGameObject {
 
         this.has_called_start = false;  // whether the object has been started
         this.timedelta = 0;    // the elapsed time of a frame
+
+        this.uuid = this.create_uuid();
+
+    }
+
+    create_uuid() {
+        let res = '';
+        for (let i = 0; i < 8; i++){
+            let x = parseInt(Math.floor(Math.random() * 10));
+            res += x;
+        }
+
+        return res;
     }
 
     start() {
@@ -454,6 +467,40 @@ class Player extends AcGameObject {
         this.ctx.fillStyle = this.color;
         this.ctx.fill();
     }
+}class MultiPlayerSocket {
+    constructor(playerground) {
+        this.playerground = playerground;
+
+        this.ws = new WebSocket('wss://app5593.acapp.acwing.com.cn/wss/multiplayer/')
+
+        this.start();
+    }
+
+    start() {
+        this.receive();
+    }
+
+    receive() {
+        this.ws.onmessage = function (e) {
+            let data = JSON.parse(e.data);
+            console.log(data);
+        }
+    }
+
+    send_create_player(username, photo) {
+        let outer = this;
+        this.ws.send(JSON.stringify({
+            'event': 'create_player',
+            'uuid': outer.uuid,
+            'username': username,
+            'photo': photo,
+
+        }));
+    }
+
+    receive_create_player() {
+        
+    }
 }class AcGamePlayground {
     constructor(root) {
         this.root = root;
@@ -489,14 +536,15 @@ class Player extends AcGameObject {
     }
 
     show(mode) {
-        this.$playground.show();
+        let outer = this;
 
-        this.resize();
+        this.$playground.show();
 
         this.width = this.$playground.width();
         this.height = this.$playground.height();
 
         this.game_map = new GameMap(this);
+        this.resize();
         this.players = [];
         this.players.push(new Player(this, this.width * Math.random() / this.scale, Math.random(), 0.05, 'red', 0.15, 'me', this.root.settings.username, this.root.settings.photo))
 
@@ -505,7 +553,12 @@ class Player extends AcGameObject {
                 this.players.push(new Player(this, this.width * Math.random() / this.scale, Math.random(), 0.05, this.get_random_color(), 0.15, 'robot'))
             }
         } else if(mode === 'multi mode') {
-
+            this.mps = new MultiPlayerSocket(this);
+            this.mps.uuid = this.players[0].uuid;
+            
+            this.mps.ws.onopen = function () {
+                outer.mps.send_create_player(outer.root.settings.username, outer.root.settings.photo);
+            }
         }
     }
 
