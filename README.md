@@ -10,7 +10,14 @@ if you are in debug, please change `DEBUG=TRUE` in settings.py file.
 python3 manage.py makemigrations
 python3 manage.py migrate
 
+```
 python3 manage.py shell
+from django.core.cache import cache
+cache.keys('')
+def clear():
+    for key in cache.keys(''):
+        cache.delete(key)
+```
 
 > load uwsgi service
 uwsgi --ini scripts/uwsgi.ini

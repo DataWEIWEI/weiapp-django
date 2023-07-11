@@ -32,14 +32,23 @@ class MultiPlayerSocket {
             'uuid': outer.uuid,
             'username': username,
             'photo': photo,
-
         }));
     }
 
     receive_create_player(uuid, username, photo) {
         let player = new Player(
             this.playerground,
-            
+            this.playerground.width / 2 / this.playerground.scale,
+            0.5,
+            0.05,
+            'red',
+            0.15,
+            'enemy',
+            username,
+            photo,
         );
+
+        player.uuid = uuid;
+        this.playerground.players.push(player);
     }
 }

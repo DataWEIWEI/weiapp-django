@@ -204,6 +204,8 @@ class Player extends AcGameObject {
     constructor(playground, x, y, radius, color, speed, character, username, photo) {
         super();
 
+        console.log(character, username, photo);
+
         this.playground = playground;
         this.ctx = this.playground.game_map.ctx;
         this.x = x;
@@ -242,7 +244,7 @@ class Player extends AcGameObject {
     start() {
         if (this.character === 'me') {
             this.add_listening_events();
-        } else {
+        } else if (this.character === 'robot') {
             let tx = Math.random() * this.playground.width / this.playground.scale;
             let ty = Math.random() * this.playground.height / this.playground.scale;
             this.move_to(tx, ty);
@@ -481,9 +483,16 @@ class Player extends AcGameObject {
     }
 
     receive() {
+        let outer = this;
         this.ws.onmessage = function (e) {
             let data = JSON.parse(e.data);
-            console.log(data);
+            let uuid = data.uuid;
+            if (uuid === outer.uuid) return false;
+
+            let event = data.event;
+            if (event === 'create_player') {
+                outer.receive_create_player(uuid, data.username, data.photo);
+            }
         }
     }
 
@@ -494,12 +503,24 @@ class Player extends AcGameObject {
             'uuid': outer.uuid,
             'username': username,
             'photo': photo,
-
         }));
     }
 
-    receive_create_player() {
-        
+    receive_create_player(uuid, username, photo) {
+        let player = new Player(
+            this.playerground,
+            this.playerground.width / 2 / this.playerground.scale,
+            0.5,
+            0.05,
+            'red',
+            0.15,
+            'enemy',
+            username,
+            photo,
+        );
+
+        player.uuid = uuid;
+        this.playerground.players.push(player);
     }
 }class AcGamePlayground {
     constructor(root) {
@@ -546,7 +567,7 @@ class Player extends AcGameObject {
         this.game_map = new GameMap(this);
         this.resize();
         this.players = [];
-        this.players.push(new Player(this, this.width * Math.random() / this.scale, Math.random(), 0.05, 'red', 0.15, 'me', this.root.settings.username, this.root.settings.photo))
+        this.players.push(new Player(this, this.width / 2 / this.scale, 0.5, 0.05, 'red', 0.15, 'me', this.root.settings.username, this.root.settings.photo))
 
         if (mode === 'single mode') {
             for (let i = 0; i < 5; i++) {

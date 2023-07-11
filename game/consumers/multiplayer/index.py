@@ -8,7 +8,7 @@ class MultiPlayer(AsyncWebsocketConsumer):
         self.room_name = None
 
         for i in range(1000):
-            name = f'room-{i}d'
+            name = f'room-{i}'
             if not cache.has_key(name) or len(cache.get(name)) < settings.ROOM_CAPACITY:
                 self.room_name = name
                 break
@@ -25,12 +25,10 @@ class MultiPlayer(AsyncWebsocketConsumer):
 
         for player in cache.get(self.room_name):
             await self.send(text_data=json.dumps({
-                'event': 'create player',
+                'event': 'create_player',
                 'uuid': player['uuid'],
                 'username': player['username'],
                 'photo': player['photo'],
-                'x': player['x'],
-                'y': player['y']
             }))
 
         await self.channel_layer.group_add(self.room_name, self.channel_name)
