@@ -354,6 +354,13 @@ class Player extends AcGameObject {
 
     }
 
+    receive_attack(x, y, angle, damage, ball_uuid, attacker) {
+        attacker.destory_fireball(ball_uuid);
+        this.x = x;
+        this.y = y;
+        this.is_attack(angle, damage);
+    }
+
     update() {
         this.update_move();
 
@@ -461,7 +468,10 @@ class Player extends AcGameObject {
         }
 
         this.update_move();
-        this.update_attack();
+
+        if (this.player.character !== 'enemy') {
+            this.update_attack();
+        }
 
         this.render();
     }
@@ -503,6 +513,17 @@ class Player extends AcGameObject {
         let angle = Math.atan2(player.y - this.y, player.x - this.x);
         player.is_attack(angle, this.damage);
         this.destory();
+
+        if (this.playground.mode === 'multi mode') {
+            this.playground.mps.send_attack(
+                player.uuid,
+                player.x,
+                player.y,
+                angle,
+                this.damage,
+                this.uuid,
+            );
+        }
     }
 
     render() {
@@ -549,6 +570,9 @@ class Player extends AcGameObject {
                 outer.receive_move_to(uuid, data.tx, data.ty);
             } else if (event === 'shoot_fireball') {
                 outer.receive_shoot_fireball(uuid, data.tx, data.ty, data.ball_uuid)
+            } else if (event === 'attack') {
+                outer.receive_attack(uuid, data.victim_uuid, data.x, data.y,
+                    data.angle, data.damage, data.ball_uuid)
             }
         }
     }
@@ -627,6 +651,28 @@ class Player extends AcGameObject {
         if (player) {
             let fireball = player.shoot_fireball(tx, ty);
             fireball.uuid = ball_uuid;
+        }
+    }
+
+    send_attack(victim_uuid, x, y, angle, damage, ball_uuid) {
+        let outer = this;
+        this.ws.send(JSON.stringify({
+            'event': 'attack',
+            'uuid': outer.uuid,
+            'victim_uuid': victim_uuid,
+            'x': x,
+            'y': y,
+            'angle': angle,
+            'damage': damage,
+            'ball_uuid': ball_uuid,
+        }))
+    }
+
+    receive_attack(uuid, victim_uuid, x, y, angle, damage, ball_uuid) {
+        let attacker = this.get_player(uuid);
+        let victim = this.get_player(victim_uuid);
+        if (attacker && victim) {
+            victim.receive_attack(x, y, angle, damage, ball_uuid, attacker);
         }
     }
 }class AcGamePlayground {
