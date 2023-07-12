@@ -2,8 +2,6 @@ class Player extends AcGameObject {
     constructor(playground, x, y, radius, color, speed, character, username, photo) {
         super();
 
-        console.log(character, username, photo);
-
         this.playground = playground;
         this.ctx = this.playground.game_map.ctx;
         this.x = x;
@@ -23,6 +21,7 @@ class Player extends AcGameObject {
         this.eps = 0.01;
         this.friction = 0.9;
         // this.spent_time = 0;     // invincible time
+        this.fireballs = [];
 
         this.cur_skill = null;
 
@@ -59,10 +58,23 @@ class Player extends AcGameObject {
         this.playground.game_map.$canvas.mousedown(function (e) {
             const rect = outer.ctx.canvas.getBoundingClientRect();
             if (e.which === 3) {
-                outer.move_to((e.clientX - rect.left) / outer.playground.scale, (e.clientY - rect.top) / outer.playground.scale);
+                let tx = (e.clientX - rect.left) / outer.playground.scale;
+                let ty = (e.clientY - rect.top) / outer.playground.scale;
+                outer.move_to(tx, ty);
+
+                if (outer.playground.mode === 'multi mode') {
+                    outer.playground.mps.send_move_to(tx, ty);
+                }
             } else if (e.which === 1) {
-                if (outer.cur_skill === "fireball")
-                    outer.shoot_fireball((e.clientX - rect.left) / outer.playground.scale, (e.clientY - rect.top) / outer.playground.scale);
+                let tx = (e.clientX - rect.left) / outer.playground.scale;
+                let ty = (e.clientY - rect.top) / outer.playground.scale;
+                if (outer.cur_skill === "fireball") {
+                    let fireball = outer.shoot_fireball(tx, ty);
+                    
+                    if (outer.playground.mode === 'multi mode') {
+                        outer.playground.mps.send_shoot_fireball(tx, ty, fireball.uuid);
+                    }
+                }
 
                 outer.cur_skill = null;
             }
@@ -85,7 +97,21 @@ class Player extends AcGameObject {
         let speed = 0.5;
         let move_length = 1;
 
-        new FireBall(this.playground, this, x, y, radius, vx, vy, color, speed, move_length, 0.01);
+        let fireball = new FireBall(this.playground, this,
+            x, y, radius, vx, vy, color, speed, move_length, 0.01);
+        this.fireballs.push(fireball);
+
+        return fireball;
+    }
+
+    destory_fireball(uuid) {
+        for (let i = 0; i < this.fireballs.length; i++) {
+            let fireball = this.fireballs[i];
+            if (fireball.uuid === uuid) {
+                fireball.destory();
+                break;
+            }
+        }
     }
 
     get_dist(x1, y1, x2, y2) {
@@ -193,6 +219,14 @@ class Player extends AcGameObject {
             this.ctx.drawImage(this.default_img, (this.x - this.radius) * scale, (this.y - this.radius) * scale, this.radius * 2 * scale, this.radius * 2 * scale);
             this.ctx.restore();
         }
+    }
 
+    on_destory() {
+        for (let i = 0; i < this.playground.players.length; i++) {
+            if (this.playground.players[i] === this) {
+                this.playground.players.splice(i, 1);
+                break;
+            }
+        }
     }
 }
