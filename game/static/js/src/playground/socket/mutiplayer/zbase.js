@@ -1,6 +1,6 @@
 class MultiPlayerSocket {
-    constructor(playerground) {
-        this.playerground = playerground;
+    constructor(playground) {
+        this.playground = playground;
 
         this.ws = new WebSocket('wss://app5593.acapp.acwing.com.cn/wss/multiplayer/')
 
@@ -30,6 +30,8 @@ class MultiPlayerSocket {
                     data.angle, data.damage, data.ball_uuid)
             } else if (event === 'blink') {
                 outer.receive_blink(uuid, data.tx, data.ty);
+            } else if (event === 'message') {
+                outer.receive_message(uuid, data.text);
             }
         }
     }
@@ -46,8 +48,8 @@ class MultiPlayerSocket {
 
     receive_create_player(uuid, username, photo) {
         let player = new Player(
-            this.playerground,
-            this.playerground.width / 2 / this.playerground.scale,
+            this.playground,
+            this.playground.width / 2 / this.playground.scale,
             0.5,
             0.05,
             'red',
@@ -58,11 +60,11 @@ class MultiPlayerSocket {
         );
 
         player.uuid = uuid;
-        this.playerground.players.push(player);
+        this.playground.players.push(player);
     }
 
     get_player(uuid) {
-        let players = this.playerground.players;
+        let players = this.playground.players;
         for (let i = 0; i < players.length; i++) {
             let player = players[i];
             if (player.uuid === uuid) {
@@ -147,6 +149,22 @@ class MultiPlayerSocket {
         let player = this.get_player(uuid);
         if (player) {
             player.blink(tx, ty);
+        }
+    }
+
+    send_message(text) {
+        let outer = this;
+        this.ws.send(JSON.stringify({
+            'event': 'message',
+            'uuid': outer.uuid,
+            'text': text,
+        }))
+    }
+
+    receive_message(uuid, text) {
+        let player = this.get_player(uuid);
+        if (player) {
+            player.playground.chat_field.add_message(player.username, text);
         }
     }
 }
