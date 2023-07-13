@@ -153,6 +153,34 @@ requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
         this.ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
         this.ctx.fillRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
     }
+}class NoticeBoard extends AcGameObject {
+    constructor(playground) {
+        super();
+
+        this.playground = playground;
+        this.ctx = this.playground.game_map.ctx;
+        this.text = 'ready players: 0';
+
+    }
+
+    start() {
+        
+    }
+
+    write(text) {
+        this.text = text;
+    }
+
+    update() {
+        this.render();
+    }
+
+    render() {
+        this.ctx.font = "20px serif";
+        this.ctx.fillStyle = "white";
+        this.ctx.textAlign = "center";
+        this.ctx.fillText(this.text, this.playground.width / 2, 20);
+    }
 }class Particle extends AcGameObject {
     constructor(playground, x, y, radius, vx, vy, color, speed, move_length) {
         super();
@@ -232,6 +260,16 @@ class Player extends AcGameObject {
             this.img.src = this.photo;
         }
 
+        if (this.character === 'me') {
+            this.fireball_coldtime = 1;
+            this.fireball_img = new Image();
+            this.fireball_img.src = 'https://app5593.acapp.acwing.com.cn/static/image/skill/fireball.png'
+
+            this.blink_coldtime = 4;
+            this.blink_img = new Image();
+            this.blink_img.src = 'https://app5593.acapp.acwing.com.cn/static/image/skill/blink.png'
+        }
+
         // default image
         this.default_img = new Image();
         this.default_img.src = 'https://app5593.acapp.acwing.com.cn/static/image/player/%E6%98%9F%E9%87%8E%E9%9C%B2%E6%AF%94.jpg'
@@ -241,6 +279,14 @@ class Player extends AcGameObject {
     }
 
     start() {
+        this.playground.player_count++;
+        this.playground.notice_board.write('ready players: ' + this.playground.player_count);
+
+        if (this.playground.player_count >= 3) {
+            this.playground.state = 'fighting';
+            this.playground.notice_board.write('Fighting');
+        }
+
         if (this.character === 'me') {
             this.add_listening_events();
         } else if (this.character === 'robot') {
@@ -258,6 +304,9 @@ class Player extends AcGameObject {
         });
 
         this.playground.game_map.$canvas.mousedown(function (e) {
+            if (outer.playground.state !== 'fighting')
+                return false;
+
             const rect = outer.ctx.canvas.getBoundingClientRect();
             if (e.which === 3) {
                 let tx = (e.clientX - rect.left) / outer.playground.scale;
@@ -268,13 +317,25 @@ class Player extends AcGameObject {
                     outer.playground.mps.send_move_to(tx, ty);
                 }
             } else if (e.which === 1) {
+
                 let tx = (e.clientX - rect.left) / outer.playground.scale;
                 let ty = (e.clientY - rect.top) / outer.playground.scale;
                 if (outer.cur_skill === "fireball") {
+                    if (outer.fireball_coldtime > outer.eps)
+                        return false;
+
                     let fireball = outer.shoot_fireball(tx, ty);
                     
                     if (outer.playground.mode === 'multi mode') {
                         outer.playground.mps.send_shoot_fireball(tx, ty, fireball.uuid);
+                    }
+                } else if (outer.cur_skill === 'blink') {
+                    if (outer.blink_coldtime > outer.eps)
+                        return false;
+
+                    outer.blink(tx, ty);
+                    if (outer.playground.mode === 'multi mode') {
+                        outer.playground.mps.send_blink(tx, ty);
                     }
                 }
 
@@ -283,9 +344,21 @@ class Player extends AcGameObject {
         });
 
         $(window).keydown(function (e) {
+            if (outer.playground.state !== 'fighting')
+                return true;
+        
+            
             if (e.which === 81) {   // q
+                if (outer.fireball_coldtime > outer.eps)
+                    return true;
+
                 outer.cur_skill = "fireball"
                 return false;
+            } else if (e.which === 70) {    // f  
+                if (outer.blink_coldtime > outer.eps)
+                    return true;
+
+                outer.cur_skill = "blink";
             }
         });
     }
@@ -303,6 +376,8 @@ class Player extends AcGameObject {
             x, y, radius, vx, vy, color, speed, move_length, 0.01);
         this.fireballs.push(fireball);
 
+        this.fireball_coldtime = 1;
+
         return fireball;
     }
 
@@ -314,6 +389,17 @@ class Player extends AcGameObject {
                 break;
             }
         }
+    }
+
+    blink(tx, ty) {
+        let d = this.get_dist(this.x, this.y, tx, ty);
+        d = Math.min(d, 0.8);
+        let angle = Math.atan2(ty - this.y, tx - this.x);
+        this.x += d * Math.cos(angle);
+        this.y += d * Math.sin(angle);
+
+        this.blink_coldtime = 4;
+        this.move_length = 0;
     }
 
     get_dist(x1, y1, x2, y2) {
@@ -362,16 +448,27 @@ class Player extends AcGameObject {
     }
 
     update() {
+        if (this.character === 'me' && this.playground.state === 'fighting')
+            this.update_coldtime();
         this.update_move();
 
         this.render();
+    }
+
+    update_coldtime() {
+        this.fireball_coldtime -= this.timedelta / 1000;
+        this.fireball_coldtime = Math.max(this.fireball_coldtime, 0);
+
+        this.blink_coldtime -= this.timedelta / 1000;
+        this.blink_coldtime = Math.max(this.blink_coldtime, 0);
+
     }
 
     update_move() { // update player movement
         // this.spent_time += this.timedelta / 1000;
         // if (this.spent_time < 5) {}
 
-        if (!this.character === 'robot' && Math.random() < 4 / 180.0) {
+        if (this.character === 'robot' && Math.random() < 2 / 180.0) {
             let player = this.playground.players[Math.floor(Math.random() * this.playground.players.length)];
             let tx = player.x + player.speed * this.vx * this.timedelta / 1000 * 1;
             let ty = player.y + player.speed * this.vy * this.timedelta / 1000 * 1;
@@ -428,9 +525,58 @@ class Player extends AcGameObject {
             this.ctx.drawImage(this.default_img, (this.x - this.radius) * scale, (this.y - this.radius) * scale, this.radius * 2 * scale, this.radius * 2 * scale);
             this.ctx.restore();
         }
+
+        if (this.character === 'me' && this.playground.state === 'fighting') {
+            this.render_skill_coldtime();
+        }
+    }
+
+    render_skill_coldtime() {
+        let x = 1.5, y = 0.9, r = 0.04;
+        let scale = this.playground.scale;
+
+        this.ctx.save();
+        this.ctx.beginPath();
+        this.ctx.arc(x * scale, y * scale, r * scale, 0, Math.PI * 2, false);
+        this.ctx.stroke();
+        this.ctx.clip();
+        this.ctx.drawImage(this.fireball_img, (x - r) * scale, (y - r) * scale, r * 2 * scale, r * 2 * scale);
+        this.ctx.restore();
+
+        if (this.fireball_coldtime > 0) {
+            this.ctx.beginPath();
+            this.ctx.moveTo(x * scale, y * scale);
+            this.ctx.arc(x * scale, y * scale, r * scale, 0 - Math.PI / 2, Math.PI * 2 * (1 - this.fireball_coldtime / 1) - Math.PI / 2, false);
+            this.ctx.moveTo(x * scale, y * scale);
+            this.ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+            this.ctx.fill();
+        }
+
+        x = 1.62, y = 0.9, r = 0.04;
+        this.ctx.save();
+        this.ctx.beginPath();
+        this.ctx.arc(x * scale, y * scale, r * scale, 0, Math.PI * 2, false);
+        this.ctx.stroke();
+        this.ctx.clip();
+        this.ctx.drawImage(this.blink_img, (x - r) * scale, (y - r) * scale, r * 2 * scale, r * 2 * scale);
+        this.ctx.restore();
+
+        if (this.blink_coldtime > 0) {
+            this.ctx.beginPath();
+            this.ctx.moveTo(x * scale, y * scale);
+            this.ctx.arc(x * scale, y * scale, r * scale, 0 - Math.PI / 2, Math.PI * 2 * (1 - this.blink_coldtime / 4) - Math.PI / 2, false);
+            this.ctx.moveTo(x * scale, y * scale);
+            this.ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+            this.ctx.fill();
+        }
+        
     }
 
     on_destory() {
+        if (this.character === 'me') {
+            this.playground.state = 'over';
+        }
+
         for (let i = 0; i < this.playground.players.length; i++) {
             if (this.playground.players[i] === this) {
                 this.playground.players.splice(i, 1);
@@ -573,6 +719,8 @@ class Player extends AcGameObject {
             } else if (event === 'attack') {
                 outer.receive_attack(uuid, data.victim_uuid, data.x, data.y,
                     data.angle, data.damage, data.ball_uuid)
+            } else if (event === 'blink') {
+                outer.receive_blink(uuid, data.tx, data.ty);
             }
         }
     }
@@ -675,6 +823,23 @@ class Player extends AcGameObject {
             victim.receive_attack(x, y, angle, damage, ball_uuid, attacker);
         }
     }
+
+    send_blink(tx, ty) {
+        let outer = this;
+        this.ws.send(JSON.stringify({
+            'event': 'blink',
+            'uuid': outer.uuid,
+            'tx': tx,
+            'ty': ty,
+        }))
+    }
+
+    receive_blink(uuid, tx, ty) {
+        let player = this.get_player(uuid);
+        if (player) {
+            player.blink(tx, ty);
+        }
+    }
 }class AcGamePlayground {
     constructor(root) {
         this.root = root;
@@ -714,11 +879,14 @@ class Player extends AcGameObject {
 
         this.$playground.show();
 
+        this.game_map = new GameMap(this);
         this.width = this.$playground.width();
         this.height = this.$playground.height();
         this.mode = mode;
+        this.state = 'waiting'  // waiting -> fighting -> over
+        this.notice_board = new NoticeBoard(this);
+        this.player_count = 0;
 
-        this.game_map = new GameMap(this);
         this.resize();
         this.players = [];
         this.players.push(new Player(this, this.width / 2 / this.scale, 0.5, 0.05, 'red', 0.15, 'me', this.root.settings.username, this.root.settings.photo))
