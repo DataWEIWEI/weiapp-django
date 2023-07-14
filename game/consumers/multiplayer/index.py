@@ -105,7 +105,7 @@ class MultiPlayer(AsyncWebsocketConsumer):
 
     async def group_send_event(self, data):
         if not self.room_name:
-            keys = cache.keys(f'{self.uuid}')
+            keys = cache.keys(f'*{self.uuid}*')
             if keys:
                 self.room_name = keys[0]
         await self.send(text_data=json.dumps(data))
