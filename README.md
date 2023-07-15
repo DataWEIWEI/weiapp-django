@@ -7,10 +7,10 @@ sudo /etc/init.d/nginx start
 if you are in debug, please change `DEBUG=TRUE` in settings.py file.
 
 > update database
+'''
 python3 manage.py makemigrations
 python3 manage.py migrate
-
-python3 manage.py collectstatic
+'''
 
 ```
 python3 manage.py shell
@@ -21,7 +21,7 @@ def clear():
         cache.delete(key)
 ```
 
-sudo /etc/init.d/nginx start
+> load nginx`sudo /etc/init.d/nginx start``
 
 > load uwsgi service
 ```
@@ -40,6 +40,6 @@ thrift --gen py ../thrift/match.thrift
 > introductions of files
 views: function realization and data processing
 
-urls: modify router
+- urls: modify router
 
-js: interface
+- js: interface
