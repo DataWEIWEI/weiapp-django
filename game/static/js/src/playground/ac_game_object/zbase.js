@@ -29,11 +29,17 @@ class AcGameObject {
 
     }
 
+    late_update() {     // be implemented later the last frame
+        
+    }
+
     on_destory() {  // be implement before user is defeated
         
     }
 
     destory() {
+        this.on_destory();
+        
         for (let i = 0; i < AC_GAME_OBJECTS.length; i++) {
             if (AC_GAME_OBJECTS[i] === this) {
                 AC_GAME_OBJECTS.splice(i, 1);
@@ -55,6 +61,11 @@ let AC_GAME_ANIMATION = function (timestamp) {
             obj.timedelta = timestamp - last_timestamp;
             obj.update();
         }
+    }
+
+    for (let i = 0; i < AC_GAME_OBJECTS.length; i++) {
+        let obj = AC_GAME_OBJECTS[i];
+        obj.late_update();
     }
 
     last_timestamp = timestamp;

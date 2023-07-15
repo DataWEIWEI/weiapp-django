@@ -95,7 +95,7 @@ class Player extends AcGameObject {
                         return false;
 
                     let fireball = outer.shoot_fireball(tx, ty);
-                    
+
                     if (outer.playground.mode === 'multi mode') {
                         outer.playground.mps.send_shoot_fireball(tx, ty, fireball.uuid);
                     }
@@ -106,7 +106,7 @@ class Player extends AcGameObject {
                     outer.blink(tx, ty);
                     if (outer.playground.mode === 'multi mode') {
                         outer.playground.mps.send_blink(tx, ty);
-                    }this
+                    } this
                 }
 
                 outer.cur_skill = null;
@@ -128,8 +128,8 @@ class Player extends AcGameObject {
 
             if (outer.playground.state !== 'fighting')
                 return true;
-        
-            
+
+
             if (e.which === 81) {   // q
                 if (outer.fireball_coldtime > outer.eps)
                     return true;
@@ -230,11 +230,20 @@ class Player extends AcGameObject {
     }
 
     update() {
+        this.update_win();
+
         if (this.character === 'me' && this.playground.state === 'fighting')
             this.update_coldtime();
         this.update_move();
 
         this.render();
+    }
+
+    update_win() {
+        if (this.playground.state === 'fighting' && this.character === 'me' && this.playground.players.length === 1) {
+            this.playground.state === 'over';
+            this.playground.score_board.win();
+        }
     }
 
     update_coldtime() {
@@ -351,12 +360,13 @@ class Player extends AcGameObject {
             this.ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
             this.ctx.fill();
         }
-        
+
     }
 
     on_destory() {
-        if (this.character === 'me') {
+        if (this.character === 'me' && this.playground.state === 'fighting') {
             this.playground.state = 'over';
+            this.playground.score_board.lose();
         }
 
         for (let i = 0; i < this.playground.players.length; i++) {

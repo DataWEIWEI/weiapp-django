@@ -24,9 +24,11 @@ def clear():
 sudo /etc/init.d/nginx start
 
 > load uwsgi service
+```
 uwsgi --ini scripts/uwsgi.ini
 uwsgi --reload uwsgi/uwsgi.pid
 uwsgi --stop uwsgi/uwsgi.pid
+```
 
 > load wss service
 ```
