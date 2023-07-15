@@ -48,9 +48,9 @@ views: function realization and data processing
 
 ## GAME INTERFACE
 ### WEB LOGIN AND REGISTER
-[WEB_LOGIN](https://app5593.acapp.acwing.com.cn/static/image/README/web_login.png)
-[WEB_REISTER](https://app5593.acapp.acwing.com.cn/static/image/README/web_register.png)
+[WEB_LOGIN](./game/static/image/README/web_login.png)
+[WEB_REISTER](./game/static/image/README/web_register.png)
 ### SINGLE MDOE
-[SINGLE_MODE](https://app5593.acapp.acwing.com.cn/static/image/README/single_mode.png)
+[SINGLE_MODE](./game/static/image/README/single_mode.png)
 ### LOSE
-[SINGLE_MODE](https://app5593.acapp.acwing.com.cn/static/image/README/lose.png)
+[SINGLE_MODE](./game/static/image/README/lose.png)
