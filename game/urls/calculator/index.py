@@ -1,10 +1,14 @@
-from django.urls import path
-from game.views.calculator.login import Login
-from game.views.calculator.logout import Logout
+from django.urls import path, include
+from game.views.calculator.getinfo import InfoView
 from game.views.calculator.register import Register
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+)
 
 urlpatterns = [
-    path("login/", Login, name="calculator_login"),
-    path("logout/", Logout, name="calculator_logout"),
+    path("token/", TokenObtainPairView.as_view(), name="calculator_token"),
+    path("token/refresh", TokenRefreshView.as_view(), name="calculator_token_refresh"),
+    path("getinfo/", InfoView.as_view(), name="calculator_getinfo"),
     path("register/", Register, name="calculator_register"),
 ]

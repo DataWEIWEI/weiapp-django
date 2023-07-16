@@ -3,6 +3,7 @@ class AcGameMenu {
         this.root = root;
         this.$menu = $(`
         <div class="ac-game-menu">
+            </br>
             <div class="ac-game-menu-field">
                 <div class="ac-game-menu-field-item ac-game-menu-field-item-single-mode">
                     单人模式
