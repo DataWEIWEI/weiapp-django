@@ -5,13 +5,13 @@ from django.contrib.auth.models import User
 from game.models.player.player import Player
 from random import randint
 import requests
+from rest_framework_simplejwt.tokens import RefreshToken
 
 def receive_code(request):
     data = request.GET
     code = data.get('code')
     state = data.get('state')
 
-    print('!!!!!!!!!!!!!!!!!!!!!')
     if 'errcode' in data:
         return JsonResponse({
             'result': 'apply_failed',
@@ -40,11 +40,13 @@ def receive_code(request):
     players = Player.objects.filter(openid=openid)
     if players.exists():    # if the user already exists, he does not need to register 
         player = players[0]
-
+        refresh = RefreshToken.for_user(player.user)
         return JsonResponse({
             'result': 'success',
             'username': player.user.username,
-            'photo': player.photo
+            'photo': player.photo,
+            'access': str(refresh.access_token),
+            'refresh': str(refresh)
         })
 
     get_userinfo_url = 'https://www.acwing.com/third_party/api/meta/identity/getinfo/'
@@ -63,9 +65,11 @@ def receive_code(request):
     user = User.objects.create(username=username)
     player = Player.objects.create(user=user, photo=photo, openid=openid)
 
-
+    refresh = RefreshToken.for_user(user)
     return JsonResponse({
             'result': 'success',
             'username': player.user.username,
-            'photo': player.photo
+            'photo': player.photo,
+            'access': str(refresh.access_token),
+            'refresh': str(refresh)
         })

@@ -26,9 +26,14 @@ class MultiPlayer(AsyncWebsocketConsumer):
         if not self.room_name:
             return
         """
+        user = self.scope['user']
+        print(user, user.is_authenticated)
         
-        await self.accept()
-        print('accept')
+        if user.is_authenticated:
+            await self.accept()
+            print('accept')
+        else:
+            await self.close()
 
         """
         if not cache.has_key(self.room_name):
@@ -46,7 +51,7 @@ class MultiPlayer(AsyncWebsocketConsumer):
         """
 
     async def disconnect(self, close_code):
-        if self.room_name:
+        if hasattr(self, 'room_name') and self.room_name:
             print('disconnect')
             await self.channel_layer.group_discard(self.room_name, self.channel_name)
 

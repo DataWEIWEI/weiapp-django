@@ -144,8 +144,8 @@ class Settings {
                 success: resp => {
                     console.log(resp);
                 }
-            }, 5000)
-        })
+            })
+        }, 5000)
     }
 
     add_listening_events() {
@@ -194,9 +194,9 @@ class Settings {
         })
     }
 
-    login_on_remote() {     // log on remote server
-        let username = this.$login_username.val();
-        let password = this.$login_password.val();
+    login_on_remote(username, password) {     // log on remote server
+        username = username || this.$login_username.val();
+        password = password || this.$login_password.val();
         this.$login_error_messages.empty();
         
         $.ajax({
@@ -219,8 +219,6 @@ class Settings {
     }
 
     register_on_remote() {     // register on remote server
-        let outer = this;
-
         let username = this.$register_username.val();
         let password = this.$register_password.val();
         let password_confirm = this.$register_password_confirm.val();
@@ -234,12 +232,11 @@ class Settings {
                 password: password,
                 password_confirm: password_confirm
             },
-            success: function (resp) {
-
+            success: resp => {
                 if (resp.result === 'success') {
-                    location.reload();
+                    this.login_on_remote(username, password)
                 } else {
-                    outer.$register_error_messages.html(resp.result);
+                    this.$register_error_messages.html(resp.result);
                 }
             }
         })
@@ -273,6 +270,9 @@ class Settings {
                 outer.photo = resp.photo;
                 outer.hide();
                 outer.root.menu.show();
+                outer.root.refresh = resp.refresh;
+                outer.root.access = resp.access;
+                this.refresh_jwt_token();
             } 
         });
     }
