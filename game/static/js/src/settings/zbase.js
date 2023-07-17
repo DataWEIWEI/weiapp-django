@@ -132,7 +132,20 @@ class Settings {
                     this.root.access = resp.access;
                 }
             })
-        }, 1000)
+        }, 4.5 * 60 * 1000)
+
+        setTimeout(() => {
+            $.ajax({
+                url: 'https://app5593.acapp.acwing.com.cn/settings/ranklist/',
+                type: 'get',
+                headers: {
+                    'Authorization': 'Bearer ' + this.root.access,
+                },
+                success: resp => {
+                    console.log(resp);
+                }
+            })
+        }, 5000)
     }
 
     add_listening_events() {
